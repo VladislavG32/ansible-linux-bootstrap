@@ -54,7 +54,7 @@ ansible-playbook playbooks/site.yml
 Nginx health:
 
 curl http://IP_СЕРВЕРА/health
-# ok
+ ok
 Docker:
 
 docker --version
@@ -79,4 +79,5 @@ roles/
   nginx/
 .env.example
 README.md
+
 
