@@ -1,0 +1,34 @@
+---
+- name: Установить nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Положить конфиг для health endpoint
+  ansible.builtin.template:
+    src: health.conf.j2
+    dest: /etc/nginx/sites-available/health.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Включить сайт health
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/health.conf
+    dest: /etc/nginx/sites-enabled/health.conf
+    state: link
+  notify: Reload nginx
+
+- name: Выключить дефолтный сайт (если есть)
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+- name: Включить и запустить nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

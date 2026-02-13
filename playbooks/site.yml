@@ -1,0 +1,21 @@
+---
+- name: Bootstrap Ubuntu server in one command
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    bootstrap_user: devops
+    bootstrap_user_shell: /bin/bash
+    bootstrap_user_groups: ["sudo", "docker"]
+
+    bootstrap_ssh_public_key_path: "/mnt/c/Users/Vladi/.ssh/id_ed25519.pub"
+
+    # первый прогон безопасный
+    ssh_disable_root_login: true
+    ssh_disable_password_auth: true
+
+  roles:
+    - security
+    - docker
+    - nginx

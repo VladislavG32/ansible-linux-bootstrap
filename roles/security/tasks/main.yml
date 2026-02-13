@@ -1,0 +1,117 @@
+---
+# ВАЖНО: очистка конфликтующих docker-источников до apt update
+- name: Убрать конфликтующие источники Docker (если остались от прошлых попыток)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/docker.list
+    - /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list
+    - /etc/apt/sources.list.d/docker-ce.list
+
+- name: Обновить кэш apt
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Установить базовые пакеты
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - ufw
+      - fail2ban
+    state: present
+
+# --- Пользователь + SSH ключи ---
+- name: Создать пользователя
+  ansible.builtin.user:
+    name: "{{ bootstrap_user }}"
+    shell: "{{ bootstrap_user_shell }}"
+    groups: "{{ bootstrap_user_groups }}"
+    append: true
+    create_home: true
+    state: present
+
+- name: Разрешить sudo без пароля для пользователя
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ bootstrap_user }}"
+    content: "{{ bootstrap_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+
+- name: Убедиться, что .ssh существует
+  ansible.builtin.file:
+    path: "/home/{{ bootstrap_user }}/.ssh"
+    state: directory
+    owner: "{{ bootstrap_user }}"
+    group: "{{ bootstrap_user }}"
+    mode: "0700"
+
+- name: Добавить публичный ключ в authorized_keys
+  ansible.builtin.authorized_key:
+    user: "{{ bootstrap_user }}"
+    state: present
+    key: "{{ lookup('file', bootstrap_ssh_public_key_path) }}"
+
+- name: Сгенерировать SSH ключ на сервере (опционально полезно)
+  ansible.builtin.openssh_keypair:
+    path: "/home/{{ bootstrap_user }}/.ssh/id_ed25519"
+    type: ed25519
+    owner: "{{ bootstrap_user }}"
+    group: "{{ bootstrap_user }}"
+    mode: "0600"
+
+# --- UFW ---
+- name: Разрешить порты в UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ ufw_allow_ports }}"
+
+- name: Включить UFW и запретить входящие по умолчанию
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Разрешить исходящие по умолчанию
+  community.general.ufw:
+    policy: allow
+    direction: outgoing
+
+# --- SSH hardening ---
+- name: Отключить root login по SSH (если включено)
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin\s+'
+    line: "PermitRootLogin no"
+  when: ssh_disable_root_login
+  notify: Restart ssh
+
+- name: Отключить password authentication (если включено)
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication\s+'
+    line: "PasswordAuthentication no"
+  when: ssh_disable_password_auth
+  notify: Restart ssh
+
+# --- Fail2ban ---
+- name: Сконфигурировать fail2ban
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart fail2ban
+
+- name: Включить и запустить fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true

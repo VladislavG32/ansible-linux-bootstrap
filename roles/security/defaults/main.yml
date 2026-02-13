@@ -1,0 +1,21 @@
+---
+# Пользователь для bootstrap
+bootstrap_user: devops
+bootstrap_user_shell: /bin/bash
+bootstrap_user_groups: ["sudo", "docker"]
+bootstrap_ssh_public_key_path: "~/.ssh/id_ed25519.pub"
+
+# UFW
+ufw_allow_ports:
+  - "22"
+  - "80"
+  - "443"
+
+# SSH hardening
+ssh_disable_root_login: true
+ssh_disable_password_auth: true
+
+# Fail2ban
+fail2ban_bantime: "1h"
+fail2ban_findtime: "10m"
+fail2ban_maxretry: 5
