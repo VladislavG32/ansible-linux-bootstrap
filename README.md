@@ -80,6 +80,3 @@ roles/
   nginx/
 .env.example
 README.md
-
-
-
