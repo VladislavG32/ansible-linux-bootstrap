@@ -69,6 +69,7 @@ sudo fail2ban-client status sshd
 
 
 ## Структура проекта
+```bash
 inventory.ini
 ansible.cfg
 playbooks/
@@ -79,5 +80,6 @@ roles/
   nginx/
 .env.example
 README.md
+
 
 
