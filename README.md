@@ -26,15 +26,16 @@ Playbook для “приведения в порядок” чистого Ubun
 > Запуск выполняй с локальной машины (или из WSL Ubuntu), где есть доступ по SSH к серверу.
 
 1) Установить зависимости:
-```bash
+
 sudo apt update && sudo apt install -y ansible
 ansible-galaxy collection install community.general
-Заполнить inventory.ini (IP сервера и пользователь для входа на первом прогоне).
+2) Заполнить inventory.ini (IP сервера и пользователь для входа на первом прогоне).
 
-Прогнать playbook:
+3) Прогнать playbook:
 
 ansible-playbook playbooks/site.yml
-Как прогнать на VPS/виртуалке
+
+## Как прогнать на VPS/виртуалке
 Создай VPS с Ubuntu 22.04/24.04 и получи доступ по SSH.
 
 В inventory.ini укажи IP и пользователя (обычно root на первом прогоне).
@@ -43,7 +44,7 @@ ansible-playbook playbooks/site.yml
 
 для WSL обычно: /mnt/c/Users/<USER>/.ssh/id_ed25519.pub
 
-Рекомендуемый порядок:
+## Рекомендуемый порядок:
 
 первый прогон: ssh_disable_root_login: false, ssh_disable_password_auth: false
 
@@ -65,7 +66,9 @@ Fail2ban:
 
 sudo fail2ban-client status
 sudo fail2ban-client status sshd
-Структура проекта
+
+
+## Структура проекта
 inventory.ini
 ansible.cfg
 playbooks/
@@ -76,3 +79,4 @@ roles/
   nginx/
 .env.example
 README.md
+
