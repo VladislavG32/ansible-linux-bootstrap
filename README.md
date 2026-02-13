@@ -46,9 +46,9 @@ ansible-playbook playbooks/site.yml
 
 ## Рекомендуемый порядок:
 
-первый прогон: ssh_disable_root_login: false, ssh_disable_password_auth: false
+- первый прогон: ssh_disable_root_login: false, ssh_disable_password_auth: false
 
-второй прогон: включить true, когда вход под созданным пользователем по ключу уже работает
+- второй прогон: включить true, когда вход под созданным пользователем по ключу уже работает
 
 Как проверить
 Nginx health:
@@ -80,3 +80,4 @@ roles/
   nginx/
 .env.example
 README.md
+
